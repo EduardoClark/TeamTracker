@@ -115,8 +115,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
-STATICFILES_DIRS = []  # usamos static dentro de la app
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "stats" / "static"]   # tus archivos estáticos de la app
+STATIC_ROOT = BASE_DIR / "staticfiles"               # donde collectstatic los juntará
 MEDIA_URL = "/media/"
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
