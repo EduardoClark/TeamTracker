@@ -1,0 +1,25 @@
+{% extends 'stats/base.html' %}
+{% block content %}
+<table class="list">
+  <thead>
+    <tr><th>J</th><th class="left">Rival</th><th>Fecha</th><th>Marcador</th></tr>
+  </thead>
+  <tbody>
+    {% for g in games %}
+    <tr class="res-{{ g.result }}">
+      <td>{{ g.jornada }}</td>
+      <td class="left teamcell">
+        {% if g.opponent.logo %}<img src="{{ g.opponent.logo.url }}" class="badge" alt="{{ g.opponent }}">{% endif %}
+        <span>{{ g.opponent.name }}</span>
+      </td>
+      <td>{{ g.date|date:'Y-m-d' }}</td>
+      <td>
+        <a href="{% url 'match_detail' g.pk %}">
+         PES {{ g.goals_for }} - {{ g.goals_against }} {{ g.opponent.name|slice:":3" }}
+         </a>
+        </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

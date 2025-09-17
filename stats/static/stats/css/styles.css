@@ -1,0 +1,56 @@
+:root { --bg:#0b0c10; --card:#15171c; --text:#eef2f7; --muted:#98a2b3; --win:#1f8b24; --draw:#6b7280; --loss:#b91c1c; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+.topbar{position:sticky;top:0;display:flex;align-items:center;justify-content:center;background:#0f1117;padding:.6rem;border-bottom:1px solid #222}
+.logo{height:28px}
+
+.tabs{display:flex;gap:.5rem;overflow-x:auto;background:#0f1117;padding:.4rem .6rem;border-bottom:1px solid #222;position:sticky;top:48px;z-index:5}
+.tab{flex:1;text-align:center;text-decoration:none;color:var(--muted);padding:.5rem .75rem;border-radius:.6rem;background:#141820;font-weight:600;white-space:nowrap}
+.tab.active{color:#fff;background:#1f2937}
+
+.container{padding:.8rem}
+.subtitle{margin:.2rem 0 .6rem;color:#cbd5e1;font-weight:600}
+.muted{color:var(--muted)}
+
+.list{width:100%;border-collapse:collapse;background:var(--card);border-radius:.8rem;overflow:hidden}
+.list thead{background:#1b1f2a;color:#cbd5e1}
+.list th,.list td{padding:.6rem .5rem;font-size:.95rem;text-align:center;border-bottom:1px solid #222}
+.list th.left,.list td.left{text-align:left}
+.teamcell,.playercell{display:flex;align-items:center;gap:.5rem}
+.badge{width:22px;height:22px;border-radius:50%;object-fit:cover}
+.avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+
+/* result tint */
+tr.res-W{background:color-mix(in srgb, var(--win) 15%, transparent)}
+tr.res-D{background:color-mix(in srgb, var(--draw) 15%, transparent)}
+tr.res-L{background:color-mix(in srgb, var(--loss) 15%, transparent)}
+
+/* sandwich */
+.detail-row{display:none}
+.detail-row.open{display:table-row}
+.detail-card{background:#0f1218;border:1px solid #222;border-radius:.6rem;padding:.6rem}
+.detail-title{font-weight:700;margin-bottom:.4rem}
+.detail-list{list-style:none;padding:0;margin:0;display:grid;gap:.35rem}
+.detail-list li{display:grid;grid-template-columns:36px 1fr auto 28px;align-items:center;padding:.35rem .4rem;border-radius:.4rem}
+.detail-list li.scored{background:color-mix(in srgb, var(--win) 18%, transparent)}
+.detail-list .opponent{font-weight:600}
+.detail-list .goals{text-align:center;font-variant-numeric:tabular-nums}
+
+@media (min-width:720px){ .container{max-width:840px;margin:0 auto} }
+
+/* ---- LINKS ---- */
+a {
+  color: #6ec1ff;        /* celeste Pescara */
+  text-decoration: none; /* sin subrayado inicial */
+}
+
+a:hover {
+  color: #93c5fd;        /* un celeste más claro al pasar mouse */
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #6ec1ff;        /* mismo color, evita el morado por default */
+}

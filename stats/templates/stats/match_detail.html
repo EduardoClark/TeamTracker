@@ -1,0 +1,27 @@
+{% extends 'stats/base.html' %}
+{% block content %}
+<h2 class="subtitle">J{{ game.jornada }} · {{ game.date|date:'Y-m-d' }}</h2>
+
+<div class="detail-card" style="margin-bottom:.6rem">
+  <div class="detail-title">
+    Pescara {{ game.goals_for }} - {{ game.goals_against }} {{ game.opponent.name }}
+    <span class="muted" style="margin-left:.4rem">({{ game.get_result_display }})</span>
+  </div>
+</div>
+
+<div class="detail-card">
+  <div class="detail-title">Asistencias y goles</div>
+  <ul class="detail-list">
+    {% for a in apps %}
+      <li class="{% if a.goals > 0 %}scored{% endif %}">
+        <span class="muted">#{{ a.player.number }}</span>
+        <span class="opponent">{{ a.player.short_name }}</span>
+        <span class="date">Goles</span>
+        <span class="goals">{{ a.goals }}</span>
+      </li>
+    {% empty %}
+      <li class="muted">Sin registros</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

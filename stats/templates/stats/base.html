@@ -1,0 +1,38 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pescara</title>
+  <link rel="stylesheet" href="{% static 'stats/css/styles.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <img src="{% static 'stats/pescara_placeholder.svg' %}" class="logo" alt="Pescara">
+    <h1 class="sr-only">Pescara</h1>
+  </header>
+
+  <nav class="tabs">
+    <a class="tab{% if request.resolver_match.url_name == 'standings' %} active{% endif %}" href="{% url 'standings' %}">Tabla</a>
+    <a class="tab{% if request.resolver_match.url_name == 'matches' %} active{% endif %}" href="{% url 'matches' %}">Partidos</a>
+    <a class="tab{% if request.resolver_match.url_name == 'players' %} active{% endif %}" href="{% url 'players' %}">Jugadores</a>
+  </nav>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // Abre/cierra el “sándwich” en Jugadores
+    document.addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-toggle-row]');
+      if (!tr) return;
+      const detail = tr.nextElementSibling;
+      if (detail && detail.classList.contains('detail-row')) {
+        detail.classList.toggle('open');
+      }
+    });
+  </script>
+</body>
+</html>

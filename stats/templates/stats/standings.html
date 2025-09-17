@@ -1,0 +1,41 @@
+{% extends 'stats/base.html' %}
+{% block content %}
+{% if table %}
+<h2 class="subtitle">Tabla · J{{ table.jornada }} · {{ table.date }}</h2>
+<table class="list">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th class="left">Equipo</th>
+      <th>PJ</th>
+      <th>JG</th>
+      <th>JE</th>
+      <th>JP</th>
+      <th>Pts</th>
+      <th>DG</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in entries %}
+    <tr>
+      <td>{{ e.position }}</td>
+      <td class="left teamcell">
+        {% if e.team.logo %}
+          <img src="{{ e.team.logo.url }}" class="badge" alt="{{ e.team }}">
+        {% endif %}
+        <span>{{ e.team.name }}</span>
+      </td>
+      <td>{{ e.played }}</td>
+      <td>{{ e.wins }}</td>
+      <td>{{ e.draws }}</td>
+      <td>{{ e.losses }}</td>
+      <td>{{ e.points }}</td>
+      <td>{{ e.goal_difference }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Aún no has capturado una tabla.</p>
+{% endif %}
+{% endblock %}

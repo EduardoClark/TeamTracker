@@ -1,0 +1,43 @@
+{% extends 'stats/base.html' %}
+{% block content %}
+<table class="list">
+  <thead>
+    <tr><th>#</th><th class="left">Jugador</th><th>PJ</th><th>Goles</th><th>G/M</th></tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      {% with p=row.player %}
+      <tr data-toggle-row>
+        <td>{{ p.number }}</td>
+        <td class="left playercell">
+          {% if p.photo %}<img src="{{ p.photo.url }}" class="avatar" alt="{{ p.short_name }}">{% endif %}
+          <span><a href="{% url 'player_detail' p.pk %}">{{ p.short_name }}</a></span>
+        </td>
+        <td>{{ p.gp }}</td>
+        <td>{{ p.goals_total }}</td>
+        <td>{{ row.gpm }}</td>
+      </tr>
+      <tr class="detail-row">
+        <td colspan="5">
+          <div class="detail-card">
+            <div class="detail-title">Partidos</div>
+            <ul class="detail-list">
+              {% for a in row.apps %}
+                <li class="{% if a.goals > 0 %}scored{% endif %}">
+                  <span class="muted">J{{ a.game.jornada }}</span>
+                  <span class="opponent">{{ a.game.opponent.name }}</span>
+                  <span class="date">{{ a.game.date|date:'Y-m-d' }}</span>
+                  <span class="goals">{{ a.goals }}</span>
+                </li>
+              {% empty %}
+                <li class="muted">Sin participaciones</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </td>
+      </tr>
+      {% endwith %}
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
