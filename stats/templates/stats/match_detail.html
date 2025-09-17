@@ -16,8 +16,7 @@
       <li class="{% if a.goals > 0 %}scored{% endif %}">
         <span class="muted">#{{ a.player.number }}</span>
         <span class="opponent">{{ a.player.short_name }}</span>
-        <span class="date">Goles</span>
-        <span class="goals">{{ a.goals }}</span>
+        <span class="goals">Goles: {{ a.goals }}</span>
       </li>
     {% empty %}
       <li class="muted">Sin registros</li>

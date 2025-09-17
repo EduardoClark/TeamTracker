@@ -9,9 +9,12 @@
 </head>
 <body>
   <header class="topbar">
-    <img src="{% static 'stats/pescara_placeholder.svg' %}" class="logo" alt="Pescara">
-    <h1 class="sr-only">Pescara</h1>
-  </header>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <img src="{% if pescara_team and pescara_team.logo %}{{ pescara_team.logo.url }}{% else %}{% static 'stats/pescara_placeholder.svg' %}{% endif %}" class="logo" alt="Pescara">
+    <span class="muted" style="font-weight:700;letter-spacing:.5px;">Pescara</span>
+  </div>
+  <h1 class="sr-only">Pescara</h1>
+</header>
 
   <nav class="tabs">
     <a class="tab{% if request.resolver_match.url_name == 'standings' %} active{% endif %}" href="{% url 'standings' %}">Tabla</a>

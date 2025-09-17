@@ -1,7 +1,7 @@
 {% extends 'stats/base.html' %}
 {% block content %}
 {% if table %}
-<h2 class="subtitle">Tabla · J{{ table.jornada }} · {{ table.date }}</h2>
+<h2 class="subtitle">Jornada: {{ table.jornada }} <br> {{ table.date }}</h2>
 <table class="list">
   <thead>
     <tr>
