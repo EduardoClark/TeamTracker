@@ -24,12 +24,14 @@ def standings_view(request):
 
 
 def matches_view(request):
-    qs = (PescaraGame.objects
-          .select_related("opponent")
-          .prefetch_related("appearances__player")  # ← importante para el sándwich
-          .order_by("date"))
+    qs = (
+        PescaraGame.objects
+        .select_related("opponent")
+        .prefetch_related("appearances__player")
+        .order_by("date")
+    )
 
-    # (si ya tienes filtros/paginación, mantén tu lógica aquí)
+    # --- filtros que ya tienes ---
     result = request.GET.get("result")
     if result in {"W", "D", "L"}:
         qs = qs.filter(result=result)
@@ -38,12 +40,26 @@ def matches_view(request):
     dto   = request.GET.get("to")
     if dfrom:
         df = parse_date(dfrom)
-        if df: qs = qs.filter(date__gte=df)
+        if df:
+            qs = qs.filter(date__gte=df)
     if dto:
         dt = parse_date(dto)
-        if dt: qs = qs.filter(date__lte=dt)
+        if dt:
+            qs = qs.filter(date__lte=dt)
 
-    games = qs  # o tu paginador si lo usas
+    games = list(qs)
+
+    # --- obtener posiciones actuales ---
+    latest_table = LeagueTable.objects.order_by("-jornada").first()
+    pos_by_team = {}
+    if latest_table:
+        for e in latest_table.entries.all():  # entries → tus TableEntry relacionados
+            pos_by_team[e.team_id] = e.position
+
+    # --- anotar posición a cada partido ---
+    for g in games:
+        g.opponent_position = pos_by_team.get(g.opponent_id)
+
     return render(request, "stats/matches.html", {
         "games": games,
         "result": result or "",

@@ -18,9 +18,12 @@
             <img src="{{ g.opponent.logo.url }}" alt="{{ g.opponent.name }}" class="badge-lg">
           {% endif %}
           <div class="opponent-names">
-            <div class="club">Pescara</div>
-            <div class="vs">vs</div>
-            <div class="club">{{ g.opponent.name }}</div>
+            <div class="club">
+                Pescara <span class="vs">vs</span> {{ g.opponent.name }}
+                {% if g.opponent_position %}
+                    <span class="opp-rank">(#{{ g.opponent_position }})</span>
+                {% endif %}
+         </div>
           </div>
         </div>
       </div>
