@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,9 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x)daj_g%g2irwl751)gtd9fz5d%frjbuu)+l2$k9%*wnxapo15'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = ["eduardoclark1989.pythonanywhere.com"]
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "127.0.0.1,localhost,eduardoclark1989.pythonanywhere.com"
+).split(",")
 
 # Application definition
 
@@ -115,12 +119,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
+
+
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "stats" / "static"]   # tus archivos estáticos de la app
-STATIC_ROOT = BASE_DIR / "staticfiles"               # donde collectstatic los juntará
-MEDIA_URL = "/media/"
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
+STATICFILES_DIRS = [BASE_DIR / "stats" / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

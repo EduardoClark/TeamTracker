@@ -20,8 +20,8 @@
     <tr>
       <td>{{ e.position }}</td>
       <td class="left teamcell">
-        {% if e.team.logo %}
-          <img src="{{ e.team.logo.url }}" class="badge" alt="{{ e.team }}">
+       {% if e.team.logo %}
+         <img src="{{ e.team.logo.url }}" alt="{{ e.team.name }}" class="badge-standings">
         {% endif %}
         <span>{{ e.team.name }}</span>
       </td>

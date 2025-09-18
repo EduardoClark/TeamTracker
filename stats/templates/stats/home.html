@@ -1,0 +1,59 @@
+{% extends 'stats/base.html' %}
+{% block content %}
+<section class="hero">
+  <div class="hero-brand">
+   {% load static %}
+{% if pescara_team and pescara_team.logo %}
+  <img src="{{ pescara_team.logo.url }}" alt="Pescara" class="hero-logo">
+{% else %}
+  <img src="{% static 'stats/pescara_placeholder.svg' %}" alt="Pescara" class="hero-logo">
+{% endif %}
+    <h2 class="hero-title">Pescara</h2>
+
+{% if latest_table %}
+  <div class="hero-summary">
+    <div class="hs">
+      <span class="lbl">Jornada</span>
+      <span class="val">J{{ latest_table.jornada }}/{{ total_rounds }}</span>
+    </div>
+    <div class="hs">
+      <span class="lbl">Posición</span>
+      <span class="val">{% if entry %}{{ entry.position }}º{% else %}—{% endif %}</span>
+    </div>
+    <div class="hs">
+      <span class="lbl">Puntos</span>
+      <span class="val">{% if entry %}{{ entry.points }}{% else %}—{% endif %}</span>
+    </div>
+  </div>
+{% endif %}
+  </div>
+
+  <div class="hero-cards">
+    {% if last_game %}
+      <a class="hero-card" href="{% url 'match_detail' last_game.pk %}">
+        <div class="hc-label">Último resultado</div>
+        <div class="hc-score">
+          PES {{ last_game.goals_for }} - {{ last_game.goals_against }} {{ last_game.opponent.name|slice:":3" }}
+        </div>
+        <div class="hc-meta">J{{ last_game.jornada }} · {{ last_game.date|date:'Y-m-d' }}</div>
+      </a>
+    {% endif %}
+
+    {% if next_game %}
+      <div class="hero-card">
+        <div class="hc-label">Próximo partido</div>
+        <div class="hc-score">
+          PES vs {{ next_game.opponent.name|slice:":12" }}
+        </div>
+        <div class="hc-meta">J{{ next_game.jornada }} · {{ next_game.date|date:'Y-m-d' }}</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="hero-actions">
+    <a class="btn" href="{% url 'standings' %}">Ver tabla</a>
+    <a class="btn" href="{% url 'matches' %}">Ver partidos</a>
+    <a class="btn" href="{% url 'players' %}">Ver jugadores</a>
+  </div>
+</section>
+{% endblock %}

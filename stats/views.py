@@ -2,11 +2,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.db import models
 from django.db.models import Count, Sum
+from django.db.models import Q, Max, Min
 from .models import Team, Player, PescaraGame, Appearance, LeagueTable
 from datetime import datetime
 from django.utils.dateparse import parse_date
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
 
 
 
@@ -126,3 +129,46 @@ def match_detail(request, pk):
         .order_by("player__number")
     )
     return render(request, "stats/match_detail.html", {"game": game, "apps": apps})
+
+
+def home_view(request):
+    today = timezone.now().date()
+
+    last_game = (
+        PescaraGame.objects.select_related("opponent")
+        .filter(date__lte=today).order_by("-date", "-jornada").first()
+    )
+    next_game = (
+        PescaraGame.objects.select_related("opponent")
+        .filter(date__gt=today).order_by("date", "jornada").first()
+    )
+
+    table = LeagueTable.objects.order_by("-date", "-jornada").first()
+
+    # ⬇️ AQUÍ lo sencillo: toma la fila de Pescara en esa tabla
+    entry = None
+    if table:
+        entry = table.entries.select_related("team")\
+            .filter(team__name__icontains="pescara")\
+            .first()
+
+    total_rounds = LeagueTable.objects.aggregate(m=Max("jornada"))["m"] or 24
+
+    pescara_team = Team.objects.filter(name__icontains="pescara").first()
+
+    return render(request, "stats/home.html", {
+        "last_game": last_game,
+        "next_game": next_game,
+        "latest_table": table,
+        "entry": entry,
+        "total_rounds": total_rounds,
+        "pescara_team": pescara_team,   # ← add this
+    })
+
+    return render(request, "stats/home.html", {
+        "last_game": last_game,
+        "next_game": next_game,
+        "latest_table": table,
+        "entry": entry,
+        "total_rounds": total_rounds,
+    })

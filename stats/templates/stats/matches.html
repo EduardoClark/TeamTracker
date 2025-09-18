@@ -3,50 +3,59 @@
 
 <!-- (si ya tienes el formulario de filtros, déjalo tal cual arriba) -->
 
-<table class="list">
-  <thead>
-    <tr><th>J</th><th class="left">Rival</th><th>Fecha</th><th>Marcador</th></tr>
-  </thead>
-  <tbody>
-    {% for g in games %}
-      <!-- Fila principal (clic abre el sándwich) -->
-      <tr class="res-{{ g.result }}" data-toggle-row aria-expanded="false">
-        <td>{{ g.jornada }}</td>
-        <td class="left teamcell">
-          {% if g.opponent.logo %}<img src="{{ g.opponent.logo.url }}" class="badge" alt="{{ g.opponent }}">{% endif %}
-          <span>{{ g.opponent.name }}</span>
-        </td>
-        <td>{{ g.date|date:'Y-m-d' }}</td>
-        <td>
-          <a href="{% url 'match_detail' g.pk %}">
-            PES {{ g.goals_for }} - {{ g.goals_against }} {{ g.opponent.short_name|default:g.opponent.name|slice:':3' }}
-          </a>
-        </td>
-      </tr>
+<section class="games">
+  {% for g in games %}
+    <article class="game-card res-{{ g.result }}" data-toggle-row aria-expanded="false">
+      <div class="game-left">
+        <div class="game-jornada">J{{ g.jornada }}</div>
+        <div class="game-date">{{ g.date|date:"d-M-y" }}</div>
 
-      <!-- Fila detalle (sándwich) -->
-      <tr class="detail-row">
-        <td colspan="4">
-          <div class="detail-card">
-            <div class="detail-title">Asistencias y goles</div>
-            <ul class="detail-list">
-              {% for a in g.appearances.all %}
-                <li class="{% if a.goals > 0 %}scored{% endif %}">
-                  <span class="muted">#{{ a.player.number }}</span>
-                  <span class="opponent">{{ a.player.short_name }}</span>
-                  <span class="date">Goles</span>
-                  <span class="goals">{{ a.goals }}</span>
-                </li>
-              {% empty %}
-                <li class="muted">Sin registros de asistentes</li>
-              {% endfor %}
-            </ul>
+      </div>
+
+      <div class="game-mid">
+        <div class="opponent">
+          {% if g.opponent.logo %}
+            <img src="{{ g.opponent.logo.url }}" alt="{{ g.opponent.name }}" class="badge-lg">
+          {% endif %}
+          <div class="opponent-names">
+            <div class="club">Pescara</div>
+            <div class="vs">vs</div>
+            <div class="club">{{ g.opponent.name }}</div>
           </div>
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="4" class="muted">Sin partidos.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+        </div>
+      </div>
+
+      <div class="game-right">
+        <a class="score" href="{% url 'match_detail' g.pk %}">
+          {{ g.goals_for }} — {{ g.goals_against }}
+        </a>
+        <div class="res-tag">
+          {% if g.result == 'W' %}Victoria{% elif g.result == 'D' %}Empate{% else %}Derrota{% endif %}
+        </div>
+      </div>
+    </article>
+
+    {# SÁNDWICH detalle asistentes/goles #}
+    <div class="detail-row">
+      <div class="detail-card">
+        <div class="detail-title">Asistencias y goles</div>
+        <ul class="detail-list">
+          {% for a in g.appearances.all %}
+            <li class="{% if a.goals > 0 %}scored{% endif %}">
+              <span class="muted">#{{ a.player.number }}</span>
+              <span class="opponent">{{ a.player.short_name }}</span>
+              <span class="date">Goles</span>
+              <span class="goals">{{ a.goals }}</span>
+            </li>
+          {% empty %}
+            <li class="muted">Sin registros de asistentes</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">Sin partidos.</p>
+  {% endfor %}
+</section>
+
 {% endblock %}
