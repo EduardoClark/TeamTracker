@@ -10,17 +10,116 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-
-
-
-def _latest_table():
-    return LeagueTable.objects.order_by("-date", "-jornada").first()
-
-
 def standings_view(request):
-    table = _latest_table()
-    entries = table.entries.select_related("team").all() if table else []
-    return render(request, "stats/standings.html", {"table": table, "entries": entries})
+    # 1) Latest table (most recent by date / jornada)
+    latest = (
+        LeagueTable.objects
+        .order_by("-date", "-jornada")
+        .prefetch_related("entries__team")
+        .first()
+    )
+    if not latest:
+        return render(request, "stats/standings.html", {"table": None, "entries": []})
+
+    # 2) Previous table (prefer same-date older jornada, else any earlier date)
+    prev = (
+        LeagueTable.objects
+        .filter(Q(date__lt=latest.date) | Q(date=latest.date, jornada__lt=latest.jornada))
+        .order_by("-date", "-jornada")
+        .prefetch_related("entries__team")
+        .first()
+    )
+
+    # Map team_id -> previous position
+    prev_map = {}
+    if prev:
+        for pe in prev.entries.all():
+            prev_map[pe.team_id] = pe.position
+
+    # Current entries ordered by position
+    entries = list(latest.entries.select_related("team").order_by("position"))
+
+    # 3) Position deltas
+    for e in entries:
+        prev_pos = prev_map.get(e.team_id)
+        if prev_pos is None:
+            e.pos_delta = None
+            e.pos_delta_abs = None
+        else:
+            # +N = improved N spots (moved UP); -N = dropped N spots
+            e.pos_delta = prev_pos - e.position
+            e.pos_delta_abs = abs(e.pos_delta)
+
+    # 4) Last head-to-head vs Pescara up to the table date
+    #    Build opponent_id -> last result ('W','D','L')
+    opp_ids = [e.team_id for e in entries]
+    last_vs = {}
+    games_qs = (
+        PescaraGame.objects
+        .filter(opponent_id__in=opp_ids)
+        .filter(Q(date__lt=latest.date) | Q(date=latest.date))
+        .order_by("opponent_id", "-date", "-jornada")
+        .values("opponent_id", "result")
+    )
+    for g in games_qs:
+        # keep newest per opponent
+        last_vs.setdefault(g["opponent_id"], g["result"])
+
+    for e in entries:
+        e.played_result = last_vs.get(e.team_id)  # 'W' | 'D' | 'L' | None
+
+    return render(
+        request,
+        "stats/standings.html",
+        {
+            "table": latest,
+            "entries": entries,
+        },
+    )    # Latest table (most recent by date/jornada)
+    latest = (
+        LeagueTable.objects
+        .order_by("-date", "-jornada")
+        .prefetch_related("entries__team")
+        .first()
+    )
+    if not latest:
+        return render(request, "stats/standings.html", {"table": None, "entries": []})
+
+    # Previous table (prefer same date older jornada, else any earlier date)
+    prev = (
+        LeagueTable.objects
+        .filter(Q(date__lt=latest.date) | Q(date=latest.date, jornada__lt=latest.jornada))
+        .order_by("-date", "-jornada")
+        .prefetch_related("entries__team")
+        .first()
+    )
+
+    # team_id -> previous position map
+    prev_map = {}
+    if prev:
+        for pe in prev.entries.all():
+            prev_map[pe.team_id] = pe.position
+
+    # Current entries ordered by position + annotate deltas
+    entries = list(latest.entries.select_related("team").order_by("position"))
+    for e in entries:
+        prev_pos = prev_map.get(e.team_id)
+        if prev_pos is None:
+            e.pos_delta = None
+            e.pos_delta_abs = None
+        else:
+            # +N means improved N spots (went UP); -N means dropped N spots
+            e.pos_delta = prev_pos - e.position
+            e.pos_delta_abs = abs(e.pos_delta)
+
+    return render(
+        request,
+        "stats/standings.html",
+        {
+            "table": latest,
+            "entries": entries,
+        },
+    )
 
 
 def matches_view(request):

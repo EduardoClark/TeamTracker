@@ -13,12 +13,24 @@
       <th>JP</th>
       <th>Pts</th>
       <th>DG</th>
+      <th class="col-j">J</th>
     </tr>
   </thead>
   <tbody>
     {% for e in entries %}
     <tr>
-      <td>{{ e.position }}</td>
+      <td class="poscell">
+        #{{ e.position }}
+        {% if e.pos_delta is not None %}
+          {% if e.pos_delta > 0 %}
+            <span class="delta up">▲ {{ e.pos_delta }}</span>
+          {% elif e.pos_delta < 0 %}
+            <span class="delta down">▼ {{ e.pos_delta_abs }}</span>
+          {% else %}
+            <span class="delta flat">—</span>
+          {% endif %}
+        {% endif %}
+      </td>
       <td class="left teamcell">
        {% if e.team.logo %}
          <img src="{{ e.team.logo.url }}" alt="{{ e.team.name }}" class="badge-standings">
@@ -31,6 +43,15 @@
       <td>{{ e.losses }}</td>
       <td>{{ e.points }}</td>
       <td>{{ e.goal_difference }}</td>
+      <td class="jcell">
+        {% if e.played_result == 'W' %}
+          <span class="chk win">✓</span>
+        {% elif e.played_result == 'L' %}
+          <span class="chk loss">✓</span>
+        {% elif e.played_result == 'D' %}
+          <span class="chk draw">✓</span>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

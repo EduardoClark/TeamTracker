@@ -413,3 +413,21 @@ a:hover {
   border-radius: 6px;
 }
 
+.poscell { white-space: nowrap; }
+.delta { margin-left: 6px; font-weight: 700; font-size: .85rem; }
+.delta.up   { color: #22c55e; }  /* green */
+.delta.down { color: #ef4444; }  /* red */
+.delta.flat { color: #9ca3af; font-weight: 600; } /* gray dash */
+
+.poscell { white-space: nowrap; }
+.delta { margin-left: 6px; font-weight: 700; font-size: .85rem; }
+.delta.up   { color: #22c55e; }
+.delta.down { color: #ef4444; }
+.delta.flat { color: #9ca3af; font-weight: 600; }
+
+.col-j, .jcell { text-align: center; width: 48px; }
+.chk { font-weight: 900; font-size: 1rem; line-height: 1; }
+.chk.win  { color: #22c55e; }
+.chk.loss { color: #ef4444; }
+.chk.draw { color: #9ca3af; }
+
