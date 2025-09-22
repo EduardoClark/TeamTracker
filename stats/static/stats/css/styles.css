@@ -492,3 +492,49 @@ a:hover {
   font-weight: 600;
 }
 
+/* --- Pescara position trend --- */
+.pos-trend-wrap { margin-top: .5rem; }
+.pos-trend {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.pos-trend thead th {
+  text-align: left;
+  font-weight: 700;
+  color: #9fb3c8;
+  padding: .5rem .6rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.pos-trend tbody td {
+  padding: .5rem .6rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.td-j { width: 40%; }
+.td-pos { width: 60%; }
+
+.poschip {
+  display: inline-block;
+  min-width: 3.2rem;
+  text-align: center;
+  font-weight: 800;
+  padding: .25rem .5rem;
+  border-radius: .6rem;
+  background: var(--chip-bg, #2b2f36); /* fallback */
+  color: #0b1a13; /* dark text over green-ish background */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+}
+
+/* If the gradient goes into darker grays, flip text color automatically on very dark bg */
+@supports (color: color-mix(in srgb, black, white)) {
+  .poschip {
+    /* Optional nuance; you can remove this if not needed */
+  }
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .pos-trend thead th, .pos-trend tbody td { padding: .4rem .5rem; }
+  .poschip { min-width: 2.6rem; }
+}
+

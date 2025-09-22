@@ -1,0 +1,35 @@
+{% extends "stats/base.html" %}
+{% block content %}
+
+<section class="section">
+  <h2 class="section-title">Posiciones de Pescara por Jornada</h2>
+
+  {% if rows %}
+    <div class="pos-trend-wrap">
+      <table class="pos-trend">
+        <thead>
+          <tr>
+            <th>Jornada</th>
+            <th>Posición</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td class="td-j">J{{ r.jornada }}</td>
+              <td class="td-pos">
+                <span class="poschip" style="--chip-bg: {{ r.color }};">
+                  {{ r.position }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">No hay datos de tabla para Pescara.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

@@ -295,3 +295,56 @@ def home_view(request):
         "entry": entry,
         "total_rounds": total_rounds,
     })
+
+def _lerp(a, b, t):
+    return int(round(a + (b - a) * t))
+
+def _hex(rgb):  # (r,g,b) -> "#rrggbb"
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
+
+def _gradient_color(pos, max_pos):
+    """
+    Map position 1..max_pos to a color from green → gray.
+    1   -> #22c55e (emerald-500)
+    max -> #6b7280 (gray-500)
+    """
+    pos = max(1, min(pos, max_pos))
+    t = (pos - 1) / max(1, max_pos - 1)   # 0..1
+
+    g = (34, 197, 94)   # green  (#22c55e)
+    w = (107, 114, 128) # gray   (#6b7280)
+    rgb = (_lerp(g[0], w[0], t), _lerp(g[1], w[1], t), _lerp(g[2], w[2], t))
+    return _hex(rgb)
+
+def pescara_positions_view(request):
+    # Identify Pescara team
+    pescara = Team.objects.filter(name__icontains="pescara").first()
+    if not pescara:
+        return render(request, "stats/pos_trend.html", {"rows": [], "max_pos": 0})
+
+    # Get all tables ordered by time
+    tables = (LeagueTable.objects
+              .order_by("date", "jornada")
+              .prefetch_related("entries__team"))
+
+    rows = []
+    max_pos_seen = 0
+    for t in tables:
+        e = next((x for x in t.entries.all() if x.team_id == pescara.id), None)
+        if not e:
+            continue
+        max_pos_seen = max(max_pos_seen, e.position)
+        rows.append({
+            "jornada": t.jornada,
+            "position": e.position,
+        })
+
+    # final pass: compute colors
+    max_pos = max_pos_seen or 1
+    for r in rows:
+        r["color"] = _gradient_color(r["position"], max_pos)
+
+    return render(request, "stats/pos_trend.html", {
+        "rows": rows,         # [{jornada, position, color}]
+        "max_pos": max_pos,   # for legend if you want to print “1…max_pos”
+    })

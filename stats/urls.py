@@ -8,4 +8,5 @@ urlpatterns = [
     path("partido/<int:pk>/", views.match_detail, name="match_detail"),
     path("jugadores/", views.players_view, name="players"),
     path("jugador/<int:pk>/", views.player_detail, name="player_detail"),
+    path("posiciones/", views.pescara_positions_view, name="pescara_positions"),
 ]
