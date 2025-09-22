@@ -40,7 +40,7 @@ td.jcell .chk.win  { color: #22c55e; } /* green */
 td.jcell .chk.loss { color: #ef4444; } /* red */
 td.jcell .chk.draw { color: #9ca3af; } /* gray */
 
-th.col-j, td.jcell { text-align: center; width: 48px; }
+th.col-j, td.jcell { text-align: center; width: 48px; } 
 
 /* Topbar */
 .topbar{
@@ -455,4 +455,40 @@ a:hover {
 .chk.win  { color: #22c55e; }
 .chk.loss { color: #ef4444; }
 .chk.draw { color: #9ca3af; }
+
+/* Make standings table more compact */
+.standings-table th,
+.standings-table td {
+  padding: 0.35rem 0.4rem;   /* tighter padding */
+  font-size: 0.9rem;
+}
+
+/* Narrower specific columns */
+.standings-table th,
+.standings-table td.poscell { width: 42px; text-align: center; }
+.standings-table th,
+.standings-table td.jcell   { width: 36px; text-align: center; }
+.standings-table td         { white-space: nowrap; }
+
+
+.sort-tabs {
+  margin-bottom: 1rem;
+}
+
+.sort-tabs .btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-right: 8px;
+  border-radius: 6px;
+  background: #1a2735;
+  color: #9fb3c8;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.sort-tabs .btn.active {
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+}
 

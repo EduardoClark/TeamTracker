@@ -167,9 +167,12 @@ def matches_view(request):
     })
 
 
+from django.db.models import Q, Count, Sum
+from .models import Player, Appearance
+
 def players_view(request):
-    # Parámetros GET: sort = number|goals|gpm , q = texto de búsqueda
-    sort = request.GET.get("sort", "number")
+    # sort: games (default) | goals | gpm | number
+    sort = request.GET.get("sort", "games")
     q = request.GET.get("q", "").strip()
 
     base = Player.objects.filter(active=True)
@@ -182,27 +185,32 @@ def players_view(request):
     players = (
         base
         .annotate(
-            gp=Count("appearances__game", distinct=True),
+            gp=Count("appearances__game", distinct=True),  # games played
             goals_total=Sum("appearances__goals"),
         )
     )
 
-    # Normaliza totals para cálculo G/M y orden
+    # Normalize + compute goals per match (gpm)
     rows = []
     for p in players:
         p.goals_total = p.goals_total or 0
         gpm = round(p.goals_total / p.gp, 2) if p.gp else 0
         rows.append({"player": p, "gpm": gpm})
 
-    # Ordenamiento en Python (dataset chico); si crece, movemos a anotaciones SQL
+    # Sorting (Python-side is fine for small datasets)
     if sort == "goals":
+        # by total goals, tie-breaker gpm
         rows.sort(key=lambda r: (r["player"].goals_total, r["gpm"]), reverse=True)
     elif sort == "gpm":
+        # by goals per match, tie-breaker total goals
         rows.sort(key=lambda r: (r["gpm"], r["player"].goals_total), reverse=True)
-    else:
-        rows.sort(key=lambda r: r["player"].number)
+    elif sort == "number":
+        rows.sort(key=lambda r: (r["player"].number or 9999, r["player"].last_name or ""))
+    else:  # "games" (default)
+        # by games played, tie-breaker total goals
+        rows.sort(key=lambda r: (r["player"].gp, r["player"].goals_total), reverse=True)
 
-    # Carga apariciones para el sándwich
+    # Load appearances for the sandwich
     player_rows = []
     for r in rows:
         p = r["player"]

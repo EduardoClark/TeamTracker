@@ -2,6 +2,7 @@
 {% block content %}
 {% if table %}
 <h2 class="subtitle">Jornada: {{ table.jornada }} <br> {{ table.date }}</h2>
+<div class="table-scroll">
 <table class="list">
   <thead>
     <tr>
@@ -20,7 +21,7 @@
     {% for e in entries %}
     <tr>
       <td class="poscell">
-        #{{ e.position }}
+        {{ e.position }}
         {% if e.pos_delta is not None %}
           {% if e.pos_delta > 0 %}
             <span class="delta up">▲ {{ e.pos_delta }}</span>
@@ -56,6 +57,7 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
 <p class="muted">Aún no has capturado una tabla.</p>
 {% endif %}

@@ -3,6 +3,12 @@
 
 {# Opcional: controles de búsqueda/orden que ya tenías #}
 
+<div class="sort-tabs">
+  <a href="?sort=games" class="btn {% if sort == 'games' %}active{% endif %}">Juegos</a>
+  <a href="?sort=goals" class="btn {% if sort == 'goals' %}active{% endif %}">Goles</a>
+</div>
+
+
 <section class="players-grid">
   {% for row in rows %}
     {% with p=row.player %}
