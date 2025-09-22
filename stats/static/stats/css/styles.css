@@ -17,6 +17,31 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
+/* --- Standings deltas (# column) --- */
+td.poscell .delta { 
+  margin-left: 6px;
+  font-weight: 700; 
+  font-size: .85rem; 
+  display: inline-flex; 
+  align-items: center; 
+  gap: .25rem;
+}
+td.poscell .delta.up   { color: #22c55e; } /* green */
+td.poscell .delta.down { color: #ef4444; } /* red */
+td.poscell .delta.flat { color: #9ca3af; font-weight: 600; } /* gray dash */
+
+/* --- J column (last H2H vs Pescara) --- */
+td.jcell .chk { 
+  font-weight: 900; 
+  font-size: 1rem; 
+  line-height: 1; 
+}
+td.jcell .chk.win  { color: #22c55e; } /* green */
+td.jcell .chk.loss { color: #ef4444; } /* red */
+td.jcell .chk.draw { color: #9ca3af; } /* gray */
+
+th.col-j, td.jcell { text-align: center; width: 48px; }
+
 /* Topbar */
 .topbar{
   position:sticky; top:0;
