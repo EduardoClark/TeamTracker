@@ -538,3 +538,46 @@ a:hover {
   .poschip { min-width: 2.6rem; }
 }
 
+/* --- Pescara position trend (extended) --- */
+.pos-trend-wrap { margin-top: .5rem; }
+.pos-trend { width: 100%; border-collapse: collapse; }
+.pos-trend thead th {
+  text-align: left; font-weight: 700; color: #9fb3c8;
+  padding: .5rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.pos-trend tbody td {
+  padding: .5rem .6rem; border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.td-j   { width: 18%; }
+.td-res { width: 18%; }
+.td-pos { width: 32%; }
+.td-pts { width: 12%; }
+
+/* Position chip (already used) */
+.poschip {
+  display: inline-block;
+  min-width: 2.4rem;
+  text-align: center;
+  font-weight: 800;
+  padding: .25rem .5rem;
+  border-radius: .6rem;
+  background: var(--chip-bg, #2b2f36);
+  color: #0b1a13;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+}
+
+/* Result chip: G (win green), P (loss red), E (draw gray) */
+.reschip {
+  display: inline-block;
+  min-width: 1.8rem;
+  text-align: center;
+  font-weight: 800;
+  padding: .22rem .45rem;
+  border-radius: .6rem;
+  color: #0b1a13;
+}
+.reschip.win  { background: #22c55e; } /* green */
+.reschip.loss { background: #ef4444; } /* red */
+.reschip.draw { background: #9ca3af; color: #111827; } /* gray */
+.reschip.none { background: transparent; color: #9ca3af; }
+

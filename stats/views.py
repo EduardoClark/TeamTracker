@@ -356,35 +356,72 @@ def _gradient_color(pos, max_pos):
     rgb = (_lerp(g[0], w[0], t), _lerp(g[1], w[1], t), _lerp(g[2], w[2], t))
     return _hex(rgb)
 
+def _lerp(a, b, t): return int(round(a + (b - a) * t))
+def _hex(rgb): return "#{:02x}{:02x}{:02x}".format(*rgb)
+
+def _gradient_color(pos, max_pos):
+    # 1 -> green (#22c55e), max -> gray (#6b7280)
+    pos = max(1, pos)
+    t = (pos - 1) / max(1, max_pos - 1)
+    g = (34, 197, 94)
+    w = (107, 114, 128)
+    rgb = (_lerp(g[0], w[0], t), _lerp(g[1], w[1], t), _lerp(g[2], w[2], t))
+    return _hex(rgb)
+
 def pescara_positions_view(request):
-    # Identify Pescara team
     pescara = Team.objects.filter(name__icontains="pescara").first()
     if not pescara:
         return render(request, "stats/pos_trend.html", {"rows": [], "max_pos": 0})
 
-    # Get all tables ordered by time
+    # All league tables in order
     tables = (LeagueTable.objects
               .order_by("date", "jornada")
               .prefetch_related("entries__team"))
 
+    # Build jornada -> game result map ('W','D','L')
+    results_by_j = {
+        g.jornada: g.result
+        for g in PescaraGame.objects.only("jornada", "result")
+    }
+
     rows = []
     max_pos_seen = 0
     for t in tables:
-        e = next((x for x in t.entries.all() if x.team_id == pescara.id), None)
-        if not e:
+        # find Pescara entry at this jornada
+        entry = next((x for x in t.entries.all() if pescara and x.team_id == pescara.id), None)
+        if not entry:
             continue
-        max_pos_seen = max(max_pos_seen, e.position)
+
+        pos = entry.position
+        pts = getattr(entry, "points", None) or 0
+
+        max_pos_seen = max(max_pos_seen, pos)
+
+        # Jornada result chip
+        res = results_by_j.get(t.jornada)  # 'W' | 'D' | 'L' | None
+        if res == "W":
+            res_letter, res_cls = "G", "win"   # Ganó
+        elif res == "L":
+            res_letter, res_cls = "P", "loss"  # Perdió
+        elif res == "D":
+            res_letter, res_cls = "E", "draw"  # Empate
+        else:
+            res_letter, res_cls = "", ""       # no game / unknown
+
         rows.append({
             "jornada": t.jornada,
-            "position": e.position,
+            "position": pos,
+            "points": pts,              # cumulative points after that jornada
+            "res_letter": res_letter,   # G/P/E or ""
+            "res_class": res_cls,       # win/loss/draw or ""
         })
 
-    # final pass: compute colors
+    # color for position chip
     max_pos = max_pos_seen or 1
     for r in rows:
         r["color"] = _gradient_color(r["position"], max_pos)
 
     return render(request, "stats/pos_trend.html", {
-        "rows": rows,         # [{jornada, position, color}]
-        "max_pos": max_pos,   # for legend if you want to print “1…max_pos”
+        "rows": rows,
+        "max_pos": max_pos,
     })

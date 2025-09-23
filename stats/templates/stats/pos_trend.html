@@ -10,18 +10,31 @@
         <thead>
           <tr>
             <th>Jornada</th>
+            <th>Resultado</th>
             <th>Posición</th>
+            <th>Puntos</th>
           </tr>
         </thead>
         <tbody>
           {% for r in rows %}
             <tr>
               <td class="td-j">J{{ r.jornada }}</td>
+
+              <td class="td-res">
+                {% if r.res_letter %}
+                  <span class="reschip {{ r.res_class }}">{{ r.res_letter }}</span>
+                {% else %}
+                  <span class="reschip none">—</span>
+                {% endif %}
+              </td>
+
               <td class="td-pos">
                 <span class="poschip" style="--chip-bg: {{ r.color }};">
                   {{ r.position }}
                 </span>
               </td>
+
+              <td class="td-pts">{{ r.points }}</td>
             </tr>
           {% endfor %}
         </tbody>
