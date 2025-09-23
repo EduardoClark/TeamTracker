@@ -10,6 +10,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+TOTAL_ROUNDS = 25
+
 def standings_view(request):
     # 1) Latest table (most recent by date / jornada)
     latest = (
@@ -257,43 +259,81 @@ def match_detail(request, pk):
 def home_view(request):
     today = timezone.now().date()
 
+    # Last and next game
     last_game = (
-        PescaraGame.objects.select_related("opponent")
-        .filter(date__lte=today).order_by("-date", "-jornada").first()
+        PescaraGame.objects
+        .select_related("opponent")
+        .filter(date__lte=today)
+        .order_by("-date", "-jornada")
+        .first()
     )
     next_game = (
-        PescaraGame.objects.select_related("opponent")
-        .filter(date__gt=today).order_by("date", "jornada").first()
+        PescaraGame.objects
+        .select_related("opponent")
+        .filter(date__gt=today)
+        .order_by("date", "jornada")
+        .first()
     )
 
-    table = LeagueTable.objects.order_by("-date", "-jornada").first()
-
-    # ⬇️ AQUÍ lo sencillo: toma la fila de Pescara en esa tabla
-    entry = None
-    if table:
-        entry = table.entries.select_related("team")\
-            .filter(team__name__icontains="pescara")\
-            .first()
-
-    total_rounds = LeagueTable.objects.aggregate(m=Max("jornada"))["m"] or 24
+    # Latest league table and Pescara entry
+    table = (
+        LeagueTable.objects
+        .order_by("-date", "-jornada")
+        .prefetch_related("entries__team")
+        .first()
+    )
 
     pescara_team = Team.objects.filter(name__icontains="pescara").first()
 
-    return render(request, "stats/home.html", {
-        "last_game": last_game,
-        "next_game": next_game,
-        "latest_table": table,
-        "entry": entry,
-        "total_rounds": total_rounds,
-        "pescara_team": pescara_team,   # ← add this
-    })
+    entry = None
+    team_count = 0
+    latest_jornada = None
+    pescara_position = None
+    pescara_points = None
+    games_played = 0
+    max_potential_points = 0
+
+    if table:
+        latest_jornada = table.jornada
+        team_count = table.entries.count()
+
+        # Find Pescara's row
+        for e in table.entries.all():
+            if pescara_team and e.team_id == pescara_team.id:
+                entry = e
+                pescara_position = getattr(e, "position", None)
+                pescara_points = getattr(e, "points", None)
+
+                # PJ: try common field names; fallback to W+D+L if needed
+                games_played = (
+                    getattr(e, "played", None) or
+                    getattr(e, "games_played", None)
+                )
+                if games_played is None:
+                    w = getattr(e, "wins", 0) or 0
+                    d = getattr(e, "draws", 0) or 0
+                    l = getattr(e, "losses", 0) or 0
+                    games_played = w + d + l
+
+                max_potential_points = (games_played or 0) * 3
+                break
 
     return render(request, "stats/home.html", {
+        # cards need:
+        "latest_jornada": latest_jornada,                 # use as J{{ latest_jornada }}/{{ total_rounds }}
+        "total_rounds": TOTAL_ROUNDS,               # = 25 (fixed)
+        "pescara_position": pescara_position,             # Y
+        "team_count": team_count,                         # X
+        "pescara_points": pescara_points,                 # XX
+        "games_played": games_played,                     # PJ
+        "max_potential_points": max_potential_points,     # YY = PJ * 3
+
+        # existing bits you already used on home:
         "last_game": last_game,
         "next_game": next_game,
         "latest_table": table,
         "entry": entry,
-        "total_rounds": total_rounds,
+        "pescara_team": pescara_team,
     })
 
 def _lerp(a, b, t):

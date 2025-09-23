@@ -18,11 +18,11 @@
     </div>
     <div class="hs">
       <span class="lbl">Posición</span>
-      <span class="val">{% if entry %}{{ entry.position }}º{% else %}—{% endif %}</span>
+      <span class="val"> {{ pescara_position }}º/{{ team_count }}</span>
     </div>
     <div class="hs">
       <span class="lbl">Puntos</span>
-      <span class="val">{% if entry %}{{ entry.points }}{% else %}—{% endif %}</span>
+      <span class="val">{{ pescara_points }}/{{ max_potential_points }}</span>
     </div>
   </div>
 {% endif %}
