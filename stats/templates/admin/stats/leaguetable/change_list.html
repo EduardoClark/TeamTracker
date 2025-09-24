@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a class="addlink" href="{% url 'admin:stats_leaguetable_create_from_latest' %}">
+      Crear siguiente tabla desde la última
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

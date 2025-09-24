@@ -581,3 +581,46 @@ a:hover {
 .reschip.draw { background: #9ca3af; color: #111827; } /* gray */
 .reschip.none { background: transparent; color: #9ca3af; }
 
+
+/* --- Sparkline (Pescara posición por jornada) --- */
+.spark-wrap { 
+  margin: .25rem 0 1rem; 
+}
+.sparkline { 
+  width: 100%; 
+  height: auto; 
+  display: block; 
+}
+.sparkline line {
+  /* axis lines */
+  opacity: .9;
+}
+
+.sparkline text { fill: #9fb3c8; font-size: 11px; font-weight: 600; }
+
+/* Sparkline visuals */
+.sparkline { width: 100%; height: auto; display: block; }
+
+.grid {
+  stroke: #1e2d3a;         /* subtle grid */
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.tick-label, .x-tick {
+  fill: #9fb7ca;
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: end;
+}
+
+.x-tick {
+  text-anchor: middle;
+}
+
+.dot-label {
+  fill: #ffffff !important;  /* white numbers inside dots */
+  font-weight: 800;
+  font-size: 14px;
+  text-anchor: middle;
+}
