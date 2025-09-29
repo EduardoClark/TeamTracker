@@ -78,10 +78,18 @@
         <tbody>
           {% for r in rows %}
             <tr>
-              <td class="td-j">J{{ r.jornada }}</td>
+              <td class="td-j">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span>J{{ r.jornada }}</span>
+                  {% if r.opp_logo %}
+                    <img src="{{ r.opp_logo }}" alt="{{ r.opp_name }}" title="{{ r.opp_name }}"
+                         style="width:24px;height:24px;object-fit:contain;display:inline-block;vertical-align:middle;">
+                  {% endif %}
+                </div>
+              </td>
               <td class="td-res">
-                {% if r.res_letter %}
-                  <span class="reschip {{ r.res_class }}">{{ r.res_letter }}</span>
+                {% if r.score %}
+                  <span class="reschip {{ r.res_class }}">{{ r.score }}</span>
                 {% else %}
                   <span class="reschip none">—</span>
                 {% endif %}

@@ -313,77 +313,106 @@ def home_view(request):
 # --------------------
 
 def pescara_positions_view(request):
+    """
+    Trajectory page:
+    - Sparkline uses a fixed Y-scale (1..25) and X placed by real jornada (J1..J{TOTAL_ROUNDS}).
+    - Table shows opponent logo (with tooltip name) and the score instead of G/P/E letters,
+      while keeping the color via res_class (win|draw|loss).
+    """
     pescara = Team.objects.filter(name__icontains="pescara").first()
     if not pescara:
         return render(request, "stats/pos_trend.html", {"rows": [], "max_pos": 0})
 
+    # All league tables ordered
     tables = (
         LeagueTable.objects
         .order_by("date", "jornada")
         .prefetch_related("entries__team")
     )
 
-    results_by_j = {g.jornada: g.result for g in PescaraGame.objects.only("jornada", "result")}
+    # Games indexed by jornada to annotate opponent + score + result
+    games = (
+        PescaraGame.objects
+        .select_related("opponent")
+        .only("jornada", "result", "goals_for", "goals_against", "opponent__name", "opponent__logo")
+    )
+    games_by_j = {g.jornada: g for g in games}
 
     rows = []
     max_pos_seen = 0
     for t in tables:
+        # find Pescara entry for this jornada
         entry = next((x for x in t.entries.all() if x.team_id == pescara.id), None)
         if not entry:
             continue
+
         pos = entry.position
         pts = getattr(entry, "points", None) or 0
         max_pos_seen = max(max_pos_seen, pos)
 
-        res = results_by_j.get(t.jornada)
-        if res == "W":
-            res_letter, res_cls = "G", "win"
-        elif res == "L":
-            res_letter, res_cls = "P", "loss"
-        elif res == "D":
-            res_letter, res_cls = "E", "draw"
-        else:
-            res_letter, res_cls = "", ""
+        # annotate from game if exists
+        g = games_by_j.get(t.jornada)
+        res_cls, score_str, opp_name, opp_logo = "", "", "", None
+        if g:
+            if g.result == "W":
+                res_cls = "win"
+            elif g.result == "L":
+                res_cls = "loss"
+            elif g.result == "D":
+                res_cls = "draw"
+
+            if g.goals_for is not None and g.goals_against is not None:
+                score_str = f"{g.goals_for}-{g.goals_against}"
+
+            if g.opponent:
+                opp_name = g.opponent.name or ""
+                if getattr(g.opponent, "logo", None):
+                    try:
+                        opp_logo = g.opponent.logo.url
+                    except Exception:
+                        opp_logo = None
 
         rows.append({
             "jornada": t.jornada,
             "position": pos,
             "points": pts,
-            "res_letter": res_letter,
-            "res_class": res_cls,
+            # for the table UI
+            "res_class": res_cls,   # win|draw|loss
+            "score": score_str,     # "5-4" etc
+            "opp_name": opp_name,   # tooltip
+            "opp_logo": opp_logo,   # badge url (may be None)
         })
 
+    # Color for the position chip
     max_pos = max(max_pos_seen or 1, 1)
     for r in rows:
         r["color"] = _gradient_color(r["position"], max_pos)
 
-    # Sparkline SVG layout
+    # ---------- Sparkline (SVG) ----------
     svg_w, svg_h = 920, 260
     pad_l, pad_r, pad_t, pad_b = 36, 18, 12, 24
     inner_w = svg_w - pad_l - pad_r
     inner_h = svg_h - pad_t - pad_b
 
-    # Fixed y range 1..25
+    # Fixed Y range 1..25 (1 top, 25 bottom)
     y_min, y_max = 1, 25
 
-    def y_for(pos):
+    def y_for(pos: int) -> float:
         pos = min(max(pos, y_min), y_max)
-        t = (pos - y_min) / (y_max - y_min)  # 0..1
+        t = (pos - y_min) / (y_max - y_min)  # 0..1 top->bottom
         return pad_t + t * inner_h
 
-    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    # X based on REAL JORNADA (J1..J{TOTAL_ROUNDS}), not on row index
-    def x_for_j(j):
+    # X based on REAL jornada (1..TOTAL_ROUNDS)
+    def x_for_j(j: int) -> float:
         j = max(1, min(j, TOTAL_ROUNDS))
         span = max(1, TOTAL_ROUNDS - 1)
         t = (j - 1) / span
         return pad_l + t * inner_w
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     points = []
     dots = []
     for r in rows:
-        x = x_for_j(r["jornada"])      # ← jornada-based X
+        x = x_for_j(r["jornada"])
         y = y_for(r["position"])
         points.append(f"{int(round(x))},{int(round(y))}")
         dots.append({
@@ -398,11 +427,10 @@ def pescara_positions_view(request):
     x_axis_step = inner_w / max(1, (TOTAL_ROUNDS - 1))
     x_labels = [{"x": int(round(pad_l + i * x_axis_step)), "text": f"J{i+1}"} for i in range(TOTAL_ROUNDS)]
 
-    # Y ticks every 5 (1,5,10,15,20,25)
+    # Y ticks every 5
     y_ticks = [1, 5, 10, 15, 20, 25]
     y_labels = [{"y": int(round(y_for(val))), "text": str(val)} for val in y_ticks]
 
-    # Nice footer span like “J1–J4”
     jornada_span = f"J{rows[0]['jornada']}–J{rows[-1]['jornada']}" if rows else ""
 
     return render(request, "stats/pos_trend.html", {
