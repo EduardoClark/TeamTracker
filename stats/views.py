@@ -13,13 +13,56 @@ from .models import (
     PescaraGame,
     Appearance,
     LeagueTable,
+    SiteSettings,
+
 )
 
 # --------------------
 # Constants / helpers
 # --------------------
 
-TOTAL_ROUNDS = 25  # used across home and trajectory chart
+# --- helpers to read the active site + home club -----------------------------
+def _active_site():
+    from .models import SiteSettings  # import here to avoid circulars if any
+    try:
+        return (
+            SiteSettings.objects
+            .select_related("home_club")
+            .filter(is_active=True)
+            .first()
+        )
+    except Exception:
+        return None
+
+
+def _home_team_fallback():
+    """
+    Use active SiteSettings.home_club when present; otherwise fall back to the
+    Pescara team (kept for compatibility with your existing DB) or the first team.
+    """
+    site = _active_site()
+    if site and site.home_club_id:
+        return site.home_club
+
+    # legacy/fallback – keep names so nothing breaks
+    return (Team.objects.filter(name__icontains="pescara").first()
+            or Team.objects.first())
+
+
+def _total_rounds():
+    """
+    Read the maximum number of jornadas from SiteSettings (max_rounds).
+    Falls back to 25 if not set or invalid.
+    """
+    site = _active_site()
+    if site and getattr(site, "max_rounds", None):
+        try:
+            val = int(site.max_rounds)
+            if val > 0:
+                return val
+        except Exception:
+            pass
+    return 25
 
 
 def _lerp(a, b, t):
@@ -258,7 +301,7 @@ def home_view(request):
         .first()
     )
 
-    pescara_team = Team.objects.filter(name__icontains="pescara").first()
+    pescara_team = _home_team_fallback()
 
     entry = None
     team_count = 0
@@ -294,7 +337,7 @@ def home_view(request):
 
     return render(request, "stats/home.html", {
         "latest_jornada": latest_jornada,
-        "total_rounds": TOTAL_ROUNDS,
+        "total_rounds": _total_rounds(),
         "pescara_position": pescara_position,
         "team_count": team_count,
         "pescara_points": pescara_points,
@@ -314,35 +357,50 @@ def home_view(request):
 
 def pescara_positions_view(request):
     """
-    Trajectory page:
+    Trajectory page for the ACTIVE team (from SiteSettings):
     - Sparkline uses a fixed Y-scale (1..25) and X placed by real jornada (J1..J{TOTAL_ROUNDS}).
     - Table shows opponent logo (with tooltip name) and the score instead of G/P/E letters,
       while keeping the color via res_class (win|draw|loss).
     """
-    pescara = Team.objects.filter(name__icontains="pescara").first()
-    if not pescara:
+
+    # ---- resolve active/home team ----
+    site = (
+        SiteSettings.objects
+        .select_related("home_club")
+        .filter(is_active=True)
+        .first()
+    )
+    home_team = site.home_club if site and site.home_club else None
+
+    # Fallback to the old behavior so nothing breaks if SiteSettings isn't set yet
+    if not home_team:
+        home_team = Team.objects.filter(name__icontains="pescara").first()
+
+    if not home_team:
         return render(request, "stats/pos_trend.html", {"rows": [], "max_pos": 0})
 
-    # All league tables ordered
+    # ---- league tables (ordered) ----
     tables = (
         LeagueTable.objects
         .order_by("date", "jornada")
         .prefetch_related("entries__team")
     )
 
-    # Games indexed by jornada to annotate opponent + score + result
+    # ---- games indexed by jornada to annotate opponent + score + result ----
     games = (
         PescaraGame.objects
         .select_related("opponent")
-        .only("jornada", "result", "goals_for", "goals_against", "opponent__name", "opponent__logo")
+        .only("jornada", "result", "goals_for", "goals_against",
+              "opponent__name", "opponent__logo")
     )
     games_by_j = {g.jornada: g for g in games}
 
     rows = []
     max_pos_seen = 0
+
     for t in tables:
-        # find Pescara entry for this jornada
-        entry = next((x for x in t.entries.all() if x.team_id == pescara.id), None)
+        # find HOME TEAM entry for this jornada
+        entry = next((x for x in t.entries.all() if x.team_id == home_team.id), None)
         if not entry:
             continue
 
@@ -350,9 +408,10 @@ def pescara_positions_view(request):
         pts = getattr(entry, "points", None) or 0
         max_pos_seen = max(max_pos_seen, pos)
 
-        # annotate from game if exists
+        # annotate with game data if exists
         g = games_by_j.get(t.jornada)
         res_cls, score_str, opp_name, opp_logo = "", "", "", None
+
         if g:
             if g.result == "W":
                 res_cls = "win"
@@ -366,9 +425,10 @@ def pescara_positions_view(request):
 
             if g.opponent:
                 opp_name = g.opponent.name or ""
-                if getattr(g.opponent, "logo", None):
+                logo = getattr(g.opponent, "logo", None)
+                if logo:
                     try:
-                        opp_logo = g.opponent.logo.url
+                        opp_logo = logo.url
                     except Exception:
                         opp_logo = None
 
@@ -376,36 +436,34 @@ def pescara_positions_view(request):
             "jornada": t.jornada,
             "position": pos,
             "points": pts,
-            # for the table UI
+            # table UI bits
             "res_class": res_cls,   # win|draw|loss
-            "score": score_str,     # "5-4" etc
+            "score": score_str,     # "5-4"
             "opp_name": opp_name,   # tooltip
             "opp_logo": opp_logo,   # badge url (may be None)
         })
 
-    # Color for the position chip
+    # ---- chip color by position ----
     max_pos = max(max_pos_seen or 1, 1)
     for r in rows:
         r["color"] = _gradient_color(r["position"], max_pos)
 
-    # ---------- Sparkline (SVG) ----------
+    # ---- sparkline (fixed Y: 1..25; X by real J) ----
     svg_w, svg_h = 920, 260
     pad_l, pad_r, pad_t, pad_b = 36, 18, 12, 24
     inner_w = svg_w - pad_l - pad_r
     inner_h = svg_h - pad_t - pad_b
 
-    # Fixed Y range 1..25 (1 top, 25 bottom)
     y_min, y_max = 1, 25
 
     def y_for(pos: int) -> float:
         pos = min(max(pos, y_min), y_max)
-        t = (pos - y_min) / (y_max - y_min)  # 0..1 top->bottom
+        t = (pos - y_min) / (y_max - y_min)  # 0..1
         return pad_t + t * inner_h
 
-    # X based on REAL jornada (1..TOTAL_ROUNDS)
     def x_for_j(j: int) -> float:
-        j = max(1, min(j, TOTAL_ROUNDS))
-        span = max(1, TOTAL_ROUNDS - 1)
+        j = max(1, min(j, _total_rounds()))
+        span = max(1, _total_rounds() - 1)
         t = (j - 1) / span
         return pad_l + t * inner_w
 
@@ -424,8 +482,8 @@ def pescara_positions_view(request):
     spark_points = " ".join(points)
 
     # X-axis labels J1..TOTAL_ROUNDS
-    x_axis_step = inner_w / max(1, (TOTAL_ROUNDS - 1))
-    x_labels = [{"x": int(round(pad_l + i * x_axis_step)), "text": f"J{i+1}"} for i in range(TOTAL_ROUNDS)]
+    x_axis_step = inner_w / max(1, (_total_rounds() - 1))
+    x_labels = [{"x": int(round(pad_l + i * x_axis_step)), "text": f"J{i+1}"} for i in range(_total_rounds())]
 
     # Y ticks every 5
     y_ticks = [1, 5, 10, 15, 20, 25]
@@ -444,6 +502,6 @@ def pescara_positions_view(request):
         "first_round": rows[0]["jornada"] if rows else None,
         "last_round": rows[-1]["jornada"] if rows else None,
         "x_labels": x_labels,
-        "total_rounds": TOTAL_ROUNDS,
+        "total_rounds": _total_rounds(),
         "jornada_span": jornada_span,
     })

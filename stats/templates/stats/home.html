@@ -8,7 +8,7 @@
 {% else %}
   <img src="{% static 'stats/pescara_placeholder.svg' %}" alt="Pescara" class="hero-logo">
 {% endif %}
-    <h2 class="hero-title">Pescara</h2>
+   <h2>{{ SITE.site_name|default:HOME_TEAM.name }}</h2>
 
 {% if latest_table %}
   <div class="hero-summary">
@@ -33,7 +33,7 @@
       <a class="hero-card" href="{% url 'match_detail' last_game.pk %}">
         <div class="hc-label">Último resultado</div>
         <div class="hc-score">
-          PES {{ last_game.goals_for }} - {{ last_game.goals_against }} {{ last_game.opponent.name|slice:":3" }}
+          {{ SITE.site_name|slice:":3"|default:HOME_TEAM.name }} {{ last_game.goals_for }} - {{ last_game.goals_against }} {{ last_game.opponent.name|slice:":3" }}
         </div>
         <div class="hc-meta">J{{ last_game.jornada }} · {{ last_game.date|date:'Y-m-d' }}</div>
       </a>
@@ -51,10 +51,8 @@
   </div>
 
   <div class="hero-actions">
-    <a class="btn" href="{% url 'standings' %}">Ver tabla</a>
-    <a class="btn" href="{% url 'matches' %}">Ver partidos</a>
-    <a class="btn" href="{% url 'players' %}">Ver jugadores</a>
     <a class="btn" href="{% url 'pescara_positions' %}">Ver trayectoria</a>
   </div>
 </section>
 {% endblock %}
+

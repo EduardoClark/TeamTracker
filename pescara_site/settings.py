@@ -67,6 +67,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                  "stats.context_processors.pescara_team",
+                "stats.context_processors.site_settings",
+                
+
 
             ],
         },

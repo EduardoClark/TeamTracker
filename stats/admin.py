@@ -5,8 +5,10 @@ from django.utils import timezone
 
 from .models import (
     Team, Player, PescaraGame, Appearance,
-    LeagueTable, LeagueTableEntry,
+    LeagueTable, LeagueTableEntry, SiteSettings
 )
+
+
 
 # -----------------------
 # Team / Player / Games
@@ -119,3 +121,22 @@ class LeagueTableAdmin(admin.ModelAdmin):
             "¡Edita y guarda los cambios!"
         )
         return redirect(reverse("admin:stats_leaguetable_change", args=[new_table.pk]))
+    
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ("site_name", "league_name", "home_club", "is_active", "max_rounds")
+    list_editable = ("is_active",)
+    search_fields = ("site_name", "league_name", "home_club__name")
+    actions = ["make_active"]
+
+    def make_active(self, request, queryset):
+        obj = queryset.first()
+        if not obj:
+            self.message_user(request, "No item selected.")
+            return
+        SiteSettings.objects.exclude(pk=obj.pk).update(is_active=False)
+        obj.is_active = True
+        obj.full_clean()
+        obj.save()
+        self.message_user(request, f"'{obj}' is now the only active SiteSettings.")
+    make_active.short_description = "Set selected as the active SiteSettings (only one)"

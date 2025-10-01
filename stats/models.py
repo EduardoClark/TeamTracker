@@ -94,3 +94,34 @@ class LeagueTableEntry(models.Model):
 
     def __str__(self):
         return f"J{self.table.jornada} #{self.position} {self.team} ({self.points} pts, DG {self.goal_difference})"
+
+# 5) Modelo para settings
+from django.core.exceptions import ValidationError
+
+class SiteSettings(models.Model):
+    site_name   = models.CharField(max_length=120, default="Pescara")
+    league_name = models.CharField(max_length=120, blank=True, default="")
+    home_club   = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="as_home_club")
+    is_active   = models.BooleanField(default=True)
+    max_rounds = models.PositiveSmallIntegerField(
+        default=25,
+        help_text="Total de jornadas.",
+    )
+
+    # Optional theme fields (keep for later; not required to function)
+    color_primary = models.CharField(max_length=7, blank=True, default="")  # "#0ea5e9" style
+    color_accent  = models.CharField(max_length=7, blank=True, default="")
+    color_win     = models.CharField(max_length=7, blank=True, default="")
+    color_draw    = models.CharField(max_length=7, blank=True, default="")
+    color_loss    = models.CharField(max_length=7, blank=True, default="")
+
+    def clean(self):
+        # Ensure only ONE active row at a time
+        if self.is_active:
+            qs = SiteSettings.objects.exclude(pk=self.pk).filter(is_active=True)
+            if qs.exists():
+                raise ValidationError("Only one active SiteSettings is allowed.")
+
+    def __str__(self):
+        name = self.site_name or (self.home_club.name if self.home_club_id else "Site")
+        return f"{name} ({'active' if self.is_active else 'inactive'})"

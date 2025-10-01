@@ -3,6 +3,7 @@
 
 {# Opcional: controles de búsqueda/orden que ya tenías #}
 
+
 <div class="sort-tabs">
   <a href="?sort=games" class="btn {% if sort == 'games' %}active{% endif %}">Juegos</a>
   <a href="?sort=goals" class="btn {% if sort == 'goals' %}active{% endif %}">Goles</a>
@@ -29,7 +30,6 @@
         <div class="pc-kpis">
           <span class="kpi"><strong>PJ</strong> {{ p.gp }}</span>
           <span class="kpi"><strong>G</strong> {{ p.goals_total }}</span>
-          <span class="kpi"><strong>G/P</strong> {{ row.gpm }}</span>
         </div>
       </div>
 

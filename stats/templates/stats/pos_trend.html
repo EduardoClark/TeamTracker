@@ -2,7 +2,7 @@
 {% block content %}
 
 <section class="section">
-  <h2 class="section-title">Posiciones de Pescara por Jornada</h2>
+  <h2 class="section-title">Trayectoria del {{ SITE.site_name|default:HOME_TEAM.name }} por jornada</h2>
 
   {% if rows %}
     <div class="spark-wrap">
@@ -106,7 +106,7 @@
       </table>
     </div>
   {% else %}
-    <p class="muted">No hay datos de tabla para Pescara.</p>
+    <p class="muted">No hay datos de tabla para {{ SITE.site_name|default:HOME_TEAM.name }}.</p>
   {% endif %}
 </section>
 

@@ -19,7 +19,7 @@
           {% endif %}
           <div class="opponent-names">
             <div class="club">
-                Pescara <span class="vs">vs</span> {{ g.opponent.name }}
+                      {{ SITE.site_name|default:HOME_TEAM.name|default:"Pescara" }} <span class="vs">VS</span> {{ g.opponent.name }}
                 {% if g.opponent_position %}
                     <span class="opp-rank">(#{{ g.opponent_position }})</span>
                 {% endif %}
@@ -30,7 +30,7 @@
 
       <div class="game-right">
         <a class="score" href="{% url 'match_detail' g.pk %}">
-          {{ g.goals_for }} — {{ g.goals_against }}
+          {{ g.goals_for }} - {{ g.goals_against }}
         </a>
         <div class="res-tag">
           {% if g.result == 'W' %}Victoria{% elif g.result == 'D' %}Empate{% else %}Derrota{% endif %}

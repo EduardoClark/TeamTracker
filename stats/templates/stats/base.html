@@ -5,7 +5,7 @@
   {% load static %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pescara</title>
+  <title>{{ SITE.site_name|default:HOME_TEAM.name }}</title>
 
   <!-- Montserrat -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -13,11 +13,26 @@
 </head>
 <body>
   <!-- HEADER -->
-  <header class="topbar">
-    <div class="brand">
-  <img src="{% if pescara_team and pescara_team.logo %}{{ pescara_team.logo.url }}{% else %}{% static 'stats/pescara_placeholder.svg' %}{% endif %}" class="logo" alt="Pescara">      <span class="brand-name">Pescara</span>
-    </div>
-  </header>
+
+<header class="topbar">
+  <div class="brand">
+    {% if HOME_TEAM %}
+      {% if HOME_TEAM.badge %}
+        <img src="{{ HOME_TEAM.badge.url }}" class="logo" alt="{{ HOME_TEAM.name }}">
+      {% elif HOME_TEAM.logo %}
+        <img src="{{ HOME_TEAM.logo.url }}" class="logo" alt="{{ HOME_TEAM.name }}">
+      {% else %}
+        <img src="{% static 'stats/pescara_placeholder.svg' %}" class="logo" alt="">
+      {% endif %}
+    {% else %}
+      <img src="{% static 'stats/pescara_placeholder.svg' %}" class="logo" alt="">
+    {% endif %}
+
+    <span class="brand-name">
+      {{ SITE.site_name|default:HOME_TEAM.name|default:"Pescara" }}
+    </span>
+  </div>
+</header>
 
   <!-- NAVIGATION TABS (arriba como antes) -->
  <nav class="topnav">
@@ -49,3 +64,4 @@
     toggler.setAttribute('aria-expanded', detail.classList.contains('open') ? 'true' : 'false');
   });
 </script>
+
