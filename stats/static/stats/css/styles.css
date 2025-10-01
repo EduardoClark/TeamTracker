@@ -1080,3 +1080,56 @@ button:hover,
   box-shadow:0 2px 0 rgba(17,24,39,.12);
 }
 
+/* Mantener posición + delta en la MISMA línea y bien centrado */
+td.poscell{
+  white-space: nowrap;               /* evita salto de línea */
+}
+
+/* La flecha/valor en línea y más compacta */
+td.poscell .delta{
+  display: inline-block;             /* en la misma línea que el número */
+  vertical-align: middle;
+  line-height: 1;
+  margin-left: .35rem;
+  font-size: .85rem;                 /* un poco más chica para que quepa */
+}
+
+/* Darle aire a la columna de posición (sin tocar el layout general) */
+.list th:first-child,
+.list td.poscell,
+.standings-table th:first-child,
+.standings-table td.poscell{
+  width: 68px;                       /* ancho respirable */
+}
+
+/* En móviles angostos, un poco más de ancho + delta más chica */
+@media (max-width: 480px){
+  .list th:first-child,
+  .list td.poscell,
+  .standings-table th:first-child,
+  .standings-table td.poscell{
+    width: 74px;
+  }
+  td.poscell .delta{
+    font-size: .8rem;
+  }
+}
+
+
+/* --- Fix: tiny break under the delta arrow in the standings table ---
+   Remove the bottom border from the position cell and paint a single
+   row divider via a pseudo-element to avoid subpixel mismatches. */
+.list td.poscell{
+  border-bottom-color: transparent !important;
+  position: relative;
+}
+.list tr{
+  position: relative;
+}
+.list tr::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:1px;
+  background: var(--line);
+}
